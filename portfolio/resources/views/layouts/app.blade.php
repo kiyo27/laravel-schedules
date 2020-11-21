@@ -75,6 +75,10 @@
         <main class="py-4">
             @yield('content')
         </main>
+
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/locale/ja.js"></script>
 </body>
 </html>

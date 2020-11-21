@@ -21,4 +21,8 @@ Route::middleware('auth:api')->get('/schedule', 'Api\ScheduleController@index');
 
 Route::middleware('auth:api')->put('/schedule', 'Api\ScheduleController@update');
 
+Route::middleware('auth:api')->post('/schedule', 'Api\ScheduleController@store');
+
+Route::middleware('auth:api')->delete('/schedule/{schedule}', 'Api\ScheduleController@destroy');
+
 Route::middleware('auth:api')->get('/schedule/search', 'Api\ScheduleController@show');

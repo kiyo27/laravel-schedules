@@ -6,20 +6,28 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Repositories\ScheduleRepository;
+use App\Schedule;
 
 class ScheduleController extends Controller
 {
     /**
      * Display a listing of the resource.
-     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  App\Repositories\ScheduleRepository
      * @return \Illuminate\Http\Response
      */
-    public function index(ScheduleRepository $repository)
+    public function index(ScheduleRepository $repository, Request $request)
     {
         // $datas = $repository->getAll();
         // return $datas;
-        $id = Auth::id();
-        return $repository->getAllByOwners($id);
+        $ownerId = Auth::id();
+        $keyword = $request->keyword;
+
+        if (is_null($keyword)) {
+            return $repository->getAllByOwners($ownerId);
+        } else {
+            return $repository->search($ownerId, $keyword);
+        }
     }
 
     /**
@@ -38,9 +46,16 @@ class ScheduleController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, ScheduleRepository $repository)
     {
-        //
+        $ownerId = Auth::id();
+        $param = [
+            'owner' => $ownerId,
+            'due_date' => $request->dueDate,
+            'title' => $request->title,
+            'description' => $request->description,
+        ];
+        $repository->create($param);
     }
 
     /**
@@ -51,7 +66,9 @@ class ScheduleController extends Controller
      */
     public function show(Request $request, ScheduleRepository $repository)
     {
-        return $repository->search();
+        $ownerId = Auth::id();
+        $keyword = 'something';
+        return $repository->search($ownerId, $keyword);
     }
 
     /**
@@ -81,11 +98,11 @@ class ScheduleController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, Schedule $model)
     {
-        //
+        $model->delete();
     }
 }

@@ -16,7 +16,7 @@ class ScheduleRepository extends AbstractRepository
         return $this->model->where('owner', $id)->get();
     }
 
-    public function update($id, $request)
+    public function update(int $id, $request)
     {
         $this->model->where('id', $id)
             ->update([
@@ -26,8 +26,26 @@ class ScheduleRepository extends AbstractRepository
             ]);
     }
 
-    public function search()
+    public function search(int $ownerId, string $keyword)
     {
-        return $this->model->where('title', 'LIKE', '%something')->get();
+        $ambiguous = '%' . $keyword . '%';
+
+        return $this->model
+            ->where('owner', $ownerId)
+            ->where(function ($query) use ($ambiguous) {
+                $query->where('title', 'LIKE', $ambiguous)
+                    ->orWhere('description', 'LIKE', '%something%');
+            })
+            ->get();
+    }
+
+    public function create($param)
+    {
+        $this->model->create($param);
+    }
+
+    public function delete($id)
+    {
+        $this->model->destroy($id);
     }
 }
