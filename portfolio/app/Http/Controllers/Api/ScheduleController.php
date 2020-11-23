@@ -12,8 +12,8 @@ class ScheduleController extends Controller
 {
     /**
      * Display a listing of the resource.
-     * @param  \Illuminate\Http\Request  $request
      * @param  App\Repositories\ScheduleRepository
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function index(ScheduleRepository $repository, Request $request)
@@ -44,7 +44,7 @@ class ScheduleController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param  App\Repositories\ScheduleRepository
      */
     public function store(Request $request, ScheduleRepository $repository)
     {
@@ -62,13 +62,13 @@ class ScheduleController extends Controller
      * Display the specified resource.
      *
      * @param  \Illuminate\Http\Request  $request
+     * @param  App\Repositories\ScheduleRepository
      * @return \Illuminate\Http\Response
      */
     public function show(Request $request, ScheduleRepository $repository)
     {
         $ownerId = Auth::id();
-        $keyword = 'something';
-        return $repository->search($ownerId, $keyword);
+        return $repository->search($ownerId, $request->keyword);
     }
 
     /**
@@ -86,7 +86,7 @@ class ScheduleController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  App\Repositories\ScheduleRepository
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, ScheduleRepository $repository)
@@ -98,10 +98,10 @@ class ScheduleController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  App\Schedule $model
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request, Schedule $model)
+    public function destroy(Schedule $model)
     {
         $model->delete();
     }

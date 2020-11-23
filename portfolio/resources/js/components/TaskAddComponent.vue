@@ -8,9 +8,25 @@
 
             <form ref="form" @submit.stop.prevent="doSend">
                 <div>
-                    <label for="due-date-input">スケジュール</label>
-                    <b-form-datepicker id="due-date-input" v-model="dueDate" class="mb-2"></b-form-datepicker>
+                    <label>スケジュール</label>
+                    <b-input-group class="mb-3">
+                        <b-form-input
+                            id="due-date-input"
+                            v-model="dueDate"
+                            type="text"
+                            placeholder="YYYY-MM-DD"
+                            autocomplete="off"
+                        ></b-form-input>
+                        <b-input-group-append>
+                            <b-form-datepicker
+                                v-model="dueDate"
+                                button-only
+                                right
+                            ></b-form-datepicker>
+                        </b-input-group-append>
+                    </b-input-group>
                 </div>
+
                 <b-form-group
                 label="件名"
                 label-for="title-input"
@@ -72,6 +88,9 @@ export default {
             })
             .then(res => {
                 this.closeModal();
+                this.dueDate = "";
+                this.title = "";
+                this.description = "";
                 this.$emit('refresh');
             })
             .catch(error => {
@@ -85,8 +104,8 @@ export default {
 <style lang="scss" scoped>
 .plus {
     position: fixed;
-    bottom: 10px;
-    right: 10px;
+    bottom: 30px;
+    right: 30px;
     z-index: 10;
     &-btn {
         cursor: pointer;

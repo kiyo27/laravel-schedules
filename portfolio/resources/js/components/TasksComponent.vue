@@ -1,54 +1,28 @@
 <template>
 
     <div class="container">
-
         <b-modal id="modal-multi" ref="modal-multi-1" title="編集" scrollable hide-footer>
-
-            <form ref="form" @submit.stop.prevent="doSend">
-                <div>
-                    <label>スケジュール</label>
-                    <b-input-group class="mb-3">
-                        <b-form-input
-                            id="due-date-input"
-                            v-model="dueDate"
-                            type="text"
-                            placeholder="YYYY-MM-DD"
-                            autocomplete="off"
-                        ></b-form-input>
-                        <b-input-group-append>
-                            <b-form-datepicker
-                                v-model="dueDate"
-                                button-only
-                                right
-                            ></b-form-datepicker>
-                        </b-input-group-append>
-                    </b-input-group>
-                </div>
-                <b-form-group label="件名">
-                    <b-form-input
-                        id="title-input"
-                        v-model="title"
-                    ></b-form-input>
-                </b-form-group>
-                <b-form-group label="内容">
-                    <textarea
-                        id="description-input"
-                        v-model="description"
-                        rows=7
-                        class="form-control"
-                    ></textarea>
-                </b-form-group>
-
-                <b-button v-b-modal.modal-multi-2 size="sm" variant="outline-danger">削除</b-button>
-                <b-button type="submit" size="sm">更新</b-button>
-            </form>
-
+            <TaskModal
+                :id=id
+                :dueDate=dueDate
+                :title=title
+                :description=description
+                @close="hideModal"
+                @update="update"
+                @delete="doDelete"
+            ></TaskModal>
         </b-modal>
 
-        <b-modal id="modal-multi-2" ref="modal-confirm-delelte" size="sm" hide-footer>
-            <p class="my-1">削除してもよろしいですか？</p>
-            <b-button size="sm" @click="hideModal('modal-confirm-delelte')">キャンセル</b-button>
-            <b-button size="sm" @click="doDelete()" variant="outline-danger">削除</b-button>
+        <b-modal id="modal-add" ref="modal-add" title="新しい予定" scrollable hide-footer>
+            <TaskModal
+                :id=0
+                @close="hideAddModal"
+                @create="create"
+            >
+                <template slot="footer">
+                    <b-button type="submit" size="sm">登録</b-button>
+                </template>
+            </TaskModal>
         </b-modal>
 
         <div class="row row-cols">
@@ -61,6 +35,20 @@
                     </div>
                 </div>
             </div>
+            <template v-if="keyword === ''">
+                <div class="card col-sm-4 card-add" @click="showAddModal">
+                    <div class="card-body">
+                        <h5 class="card-title invisible">no title</h5>
+                        <div class="invisible">
+                            <b-icon icon="calendar2-check"></b-icon>
+                            <h6 class="card-subtitle mb-2 text-muted"></h6>
+                        </div>
+                    </div>
+                    <div class="card-add-icon">
+                        <b-icon icon="plus" font-scale="1.5"></b-icon>
+                    </div>
+                </div>
+            </template>
         </div>
 
     </div>
@@ -68,7 +56,18 @@
 </template>
 
 <script>
-import { BootstrapVue, BModal, BButton, BFormDatepicker, BIcon, BIconCalendar2Check } from 'bootstrap-vue'
+import {
+    BootstrapVue,
+    BModal,
+    BButton,
+    BFormDatepicker,
+    BIcon,
+    BIconCalendar2Check,
+    BIconPlus,
+} from 'bootstrap-vue'
+
+import TaskModal from './TaskModalComponent'
+
 Vue.use(BootstrapVue)
 
 export default {
@@ -77,11 +76,16 @@ export default {
         BModal,
         BFormDatepicker,
         BIcon,
-        BIconCalendar2Check
+        BIconCalendar2Check,
+        BIconPlus,
+        TaskModal,
     },
     props: {
         items: {
             type: Array
+        },
+        keyword: {
+            type: String
         }
     },
     data() {
@@ -94,6 +98,9 @@ export default {
         }
     },
     methods: {
+        showAddModal() {
+            this.$refs['modal-add'].show();
+        },
         showModal(item) {
             this.id = item.id;
             this.dueDate = item.due_date;
@@ -101,55 +108,53 @@ export default {
             this.description = item.description;
             this.$refs['modal-multi-1'].show();
         },
-        hideModal: function(...modals) {
-            for (let i = 0; i < modals.length; i++) {
-                // console.log(modals[i])
-                this.$refs[modals[i]].hide()
-            }
+        hideAddModal: function() {
+            this.$refs['modal-add'].hide();
         },
-        doDelete() {
-            const data = {
-                'id': this.id,
-                'due_date': this.dueDate,
-                'title': this.title,
-                'description': this.description
-            }
+        hideModal: function() {
+            this.$refs['modal-multi-1'].hide();
+        },
+        create: function(param) {
+            this.hideModal();
             this.$emit('load');
-            this.hideModal('modal-confirm-delelte', 'modal-multi-1')
-            axios.delete(
-                '/api/schedule/'+data.id+'?api_token='+window.apiToken,
-                data
-            )
+            axios.post('/api/schedule?api_token='+window.apiToken, param)
             .then(res => {
-                this.$emit('refresh')
+                this.$emit('refresh');
             })
-            .catch(err => {
-                console.log(err)
-                this.$emit('error')
-            })
+            .catch(error => {
+                this.errorHandling();
+            });
         },
-        doSend() {
-            const data = {
-                'id': this.id,
-                'due_date': this.dueDate,
-                'title': this.title,
-                'description': this.description
-            }
+        update: function(data) {
+            this.hideModal();
             this.$emit('load');
-            this.hideModal('modal-multi-1')
             axios.put(
                 '/api/schedule?api_token='+window.apiToken,
                 data
             )
             .then(res => {
-                this.$emit('refresh')
+                this.$emit('refresh');
+            })
+            .catch(error => {
+                this.errorHandling();
+            });
+        },
+        doDelete: function(id) {
+            this.hideModal();
+            this.$emit('load');
+            axios.delete(
+                '/api/schedule/' + id + '?api_token='+window.apiToken,
+            )
+            .then(res => {
+                this.$emit('refresh');
             })
             .catch(err => {
-                console.log(err)
-                this.$emit('error')
+                this.errorHandling();
             })
         },
-
+        errorHandling: function() {
+            alert('通信エラーが発生しました。')
+        }
     }
 }
 </script>
@@ -160,8 +165,20 @@ input, textarea {
 }
 .card {
     cursor: pointer;
+    &-add {
+        position: relative;
+        &-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    }
 }
 .card-subtitle {
     display: inline;
+}
+.invisible {
+    visibility: hidden;
 }
 </style>

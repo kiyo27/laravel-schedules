@@ -1,7 +1,5 @@
 FROM php:7.3-fpm
 
-LABEL project=sb-participant-mgmt
-
 ENV COMPOSER_ALLOW_SUPERUSER 1
 ENV COMPOSER_HOME /composer
 ENV PATH $PATH:/composer/vendor/bin
